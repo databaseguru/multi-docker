@@ -1,0 +1,21 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t kalpitp/react-test -f ./client/Dockerfile.dev .
+
+script:
+    - docker run -e CI=true kalpitp/react-test npm run test 
+
+after_success:
+    - docker build -t kalpitp/multi-client ./client
+    - docker build -t kalpitp/multi-nginx ./nginx
+    - docker build -t kalpitp/multi-server ./server
+    - docker build -t kalpitp/multi-worker ./worker
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push kalpitp/multi-client
+    - docker push kalpitp/multi-nginx
+    - docker push kalpitp/multi-server
+    - docker push kalpitp/multi-worker
